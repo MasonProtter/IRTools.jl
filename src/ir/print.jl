@@ -3,6 +3,10 @@ import Base: show
 # TODO: real expression printing
 Base.show(io::IO, x::Variable) = print(io, "%", x.id)
 
+const printers = Dict{Symbol,Any}()
+
+print_stmt(io::IO, ex::Expr) = get(printers, ex.head, print)(io, ex)
+
 print_stmt(io::IO, ex) = print(io, ex)
 
 function show(io::IO, b::Branch)
@@ -68,4 +72,14 @@ function print_stmt(io::IO, ex::IR)
   io = IOContext(io, :indent=>get(io, :indent, 0)+2)
   println(io)
   show(io, ex)
+end
+
+# Lambdas extension
+
+printers[:lambda] = function (io, ex)
+  io = IOContext(io, :indent=>get(io, :indent, 0)+2)
+  print(io, "λ: ")
+  printargs(io, ex.args[2:end])
+  println(io)
+  print(io, ex.args[1])
 end
